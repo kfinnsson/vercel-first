@@ -74,6 +74,8 @@
   <div id="status">Loading messages...</div>
 
   <script>
+    const API_KEY = "{{API_KEY}}";
+    const headers = { "Content-Type": "application/json", "X-API-Key": API_KEY };
     const form = document.getElementById("form");
     const entriesDiv = document.getElementById("entries");
     const statusDiv = document.getElementById("status");
@@ -97,7 +99,7 @@
 
     async function loadMessages() {
       try {
-        const res = await fetch("/api/messages");
+        const res = await fetch("/api/messages", { headers: { "X-API-Key": API_KEY } });
         const data = await res.json();
         if (data.length === 0) {
           statusDiv.textContent = "No messages yet. Be the first to sign!";
@@ -117,7 +119,7 @@
       try {
         const res = await fetch("/api/messages", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             name: document.getElementById("name").value,
             message: document.getElementById("message").value,

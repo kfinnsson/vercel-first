@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 import psycopg2
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.responses import HTMLResponse
 from mangum import Mangum
 from pydantic import BaseModel
@@ -11,6 +11,12 @@ from pydantic import BaseModel
 app = FastAPI()
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+API_KEY = os.environ.get("API_KEY", "")
+
+
+def require_api_key(x_api_key: str = Header()):
+    if not API_KEY or x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API key")
 
 
 def get_conn():
@@ -42,7 +48,7 @@ def startup():
         ensure_table()
 
 
-@app.get("/api/messages")
+@app.get("/api/messages", dependencies=[Depends(require_api_key)])
 def list_messages():
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -56,7 +62,7 @@ def list_messages():
     ]
 
 
-@app.post("/api/messages", status_code=201)
+@app.post("/api/messages", status_code=201, dependencies=[Depends(require_api_key)])
 def create_message(msg: MessageIn):
     if not msg.name.strip() or not msg.message.strip():
         raise HTTPException(status_code=400, detail="Name and message are required")
@@ -74,7 +80,8 @@ def create_message(msg: MessageIn):
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
     html_path = Path(__file__).parent / "index.html"
-    return HTMLResponse(html_path.read_text())
+    html = html_path.read_text().replace("{{API_KEY}}", API_KEY)
+    return HTMLResponse(html)
 
 
 handler = Mangum(app)
