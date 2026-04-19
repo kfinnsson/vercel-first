@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from mangum import Mangum
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(redoc_url=None)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 API_KEY = os.environ.get("API_KEY", "")
