@@ -14,8 +14,10 @@ from fastapi import FastAPI, HTTPException, Request, Depends, Cookie
 from fastapi.responses import HTMLResponse, RedirectResponse
 from mangum import Mangum
 from pydantic import BaseModel
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI(redoc_url=None)
+app.add_middleware(SessionMiddleware, secret_key=os.environ.get("SECRET_KEY", "dev"))
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 SECRET_KEY = os.environ.get("SECRET_KEY", "")
